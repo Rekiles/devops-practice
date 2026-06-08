@@ -1,0 +1,13 @@
+# Игнорируем секретный ключ Яндекса
+terraform/key.json
+*.json
+
+# Игнорируем внутренние папки и стейты Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Игнорируем кэш Python
+__pycache__/
+*.pyc
