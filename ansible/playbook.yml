@@ -4,25 +4,28 @@
   become: yes
 
   tasks:
+    # --- НАСТРОЙКА РЕПОЗИТОРИЯ DOCKER ---
     - name: Создать директорию для GPG-ключей apt
       ansible.builtin.file:
         path: /etc/apt/keyrings
         state: directory
         mode: '0755'
 
-    - name: Скачать и добавить официальный GPG-ключ Docker
+    - name: Скачать официальный GPG-ключ Docker
       ansible.builtin.get_url:
         url: https://download.docker.com/linux/ubuntu/gpg
         dest: /etc/apt/keyrings/docker.asc
         mode: '0644'
 
-    - name: Добавить официальный репозиторий Docker в apt
+    - name: Добавить официальный репозиторий Docker и обновить кэш apt
       ansible.builtin.apt_repository:
         repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_facts['distribution_release'] }} stable"
         state: present
         filename: docker
+        update_cache: yes # <-- ГАРАНТИРУЕТ, что apt увидит новые пакеты
 
-    - name: Установить Docker Engine, CLI и Docker Compose
+    # --- УСТАНОВКА КОМПОНЕНТОВ ---
+    - name: Установить Docker Engine, CLI и плагины
       ansible.builtin.apt:
         pkg:
           - docker-ce
@@ -47,16 +50,19 @@
         owner: ubuntu
         group: ubuntu
 
-    - name: Скопировать файлы приложения и docker-compose на server
+    - name: Скопировать файлы приложения и docker-compose на сервер
       ansible.builtin.copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
         mode: '0644'
       loop:
         - { src: '../docker-compose.yml', dest: '/home/ubuntu/app/docker-compose.yml' }
+        - { src: '../.env', dest: '/home/ubuntu/app/.env' }
         - { src: '../app/', dest: '/home/ubuntu/app/app/' }
 
-    - name: Собрать Docker-образы и запустить проект через Docker Compose
-      ansible.builtin.shell:
-        cmd: docker compose up -d --build
-        chdir: /home/ubuntu/app
+    # ---ПРОФЕССИОНАЛЬНЫЙ ЗАПУСК КОНТЕЙНЕРОВ ---
+    - name: Запустить проект через Docker Compose (Идемпотентно)
+      community.docker.docker_compose_v2:
+        project_src: /home/ubuntu/app
+        state: present
+        build: always # <-- Соберет образы, если изменился Dockerfile/код

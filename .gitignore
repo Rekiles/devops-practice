@@ -11,3 +11,5 @@ terraform/key.json
 # Игнорируем кэш Python
 __pycache__/
 *.pyc
+
+.env
