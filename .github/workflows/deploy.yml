@@ -27,13 +27,15 @@ jobs:
       with:
         terraform_version: "1.15.5"
 
-    # 3. Инициализируем Terraform (он автоматически залезет в твой S3 бакет)
+    # 3. Инициализируем Terraform в нужной папке
     - name: Terraform Init
       run: terraform init
+      working-directory: ./terraform # <-- УКАЗЫВАЕМ ПУТЬ К ТВОЕЙ ПАПКЕ С TF ФАЙЛАМИ
 
-    # 4. Применяем изменения инфраструктуры в Яндекс Облаке
+    # 4. Применяем изменения инфраструктуры
     - name: Terraform Apply
       run: terraform apply -auto-approve
+      working-directory: ./terraform # <-- И ЗДЕСЬ ТОЖЕ
 
     # 5. ВЫТАСКИВАЕМ IP АДРЕС СЕРВЕРА ИЗ TERRAFORM
     - name: Get Server IP
@@ -41,6 +43,7 @@ jobs:
       run: |
         SERVER_IP=$(terraform output -raw external_ip)
         echo "server_ip=$SERVER_IP" >> $GITHUB_OUTPUT
+      working-directory: ./terraform # <-- И ЗДЕСЬ, чтобы он взял output из нужной папки
 
     # 6. Настраиваем SSH-ключ из наших зашифрованных секретов
     - name: Set up SSH Key
