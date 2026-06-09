@@ -73,7 +73,7 @@ resource "yandex_compute_instance" "vm" {
 
   metadata = {
     # Добавляем твой публичный SSH-ключ для доступа к серверу
-    ssh-keys = "ubuntu:${file("/mnt/c/Users/bylli/.ssh/id_ed25519.pub")}"
+    ssh-keys = "ubuntu:${file("id_ed25519.pub")}"
   }
 }
 
