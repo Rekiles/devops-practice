@@ -17,9 +17,14 @@ jobs:
       YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
 
     steps:
-    # 1. Скачиваем код репозитория на виртуальную машину GitHub
+    # 1. Скачиваем код репозитория
     - name: Checkout code
       uses: actions/checkout@v4
+
+    # 1.5 Восстанавливаем key.json для Terraform из секретов GitHub
+    - name: Create Yandex SA Key File
+      run: |
+        echo '${{ secrets.YC_SA_KEY }}' > terraform/key.json
 
     # 2. Настраиваем утилиту Terraform на машине GitHub
     - name: Setup Terraform
