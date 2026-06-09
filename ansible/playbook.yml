@@ -66,3 +66,56 @@
         project_src: /home/ubuntu/app
         state: present
         build: always # <-- Соберет образы, если изменился Dockerfile/код
+    - name: Запустить Node Exporter для сбора системных метрик
+      community.docker.docker_container:
+        name: node-exporter
+        image: prom/node-exporter:latest
+        restart_policy: unless-stopped
+        network_mode: host
+        pid_mode: host
+        volumes:
+          - /:/host:ro,rslave
+        command:
+          - '--path.rootfs=/host'
+    - name: Создать папку для конфигурации Promtail
+      ansible.builtin.file:
+        path: /home/ubuntu/promtail
+        state: directory
+        mode: '0755'
+
+    - name: Создать конфигурационный файл для Promtail
+      ansible.builtin.copy:
+        dest: /home/ubuntu/promtail/promtail.yml
+        content: |
+          server:
+            http_listen_port: 9080
+            grpc_listen_port: 0
+
+          positions:
+            filename: /tmp/positions.yaml
+
+          clients:
+            - url: http://localhost:3100/loki/api/v1/push
+
+          scrape_configs:
+            - job_name: docker_logs
+              docker_sd_configs:
+                - host: unix:///var/run/docker.sock
+                  refresh_interval: 5s
+              relabel_configs:
+                - source_labels: ['__meta_docker_container_name']
+                  regex: '/(.*)'
+                  target_label: 'container'
+
+    - name: Запустить Promtail в Docker для сбора логов контейнеров
+      community.docker.docker_container:
+        name: promtail
+        image: grafana/promtail:latest
+        restart_policy: unless-stopped
+        network_mode: host
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /var/lib/docker/containers:/var/lib/docker/containers:ro
+          - /home/ubuntu/promtail/promtail.yml:/etc/promtail/config.yml
+        command:
+          - '-config.file=/etc/promtail/config.yml'

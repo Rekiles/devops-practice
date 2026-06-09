@@ -1,0 +1,42 @@
+name: CI/CD Production Deploy
+
+# Конвейер будет запускаться только при пуше в ветку main
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # GitHub выделит чистую Linux-машину для выполнения шагов
+
+    steps:
+    # 1. Скачиваем код репозитория на виртуальную машину GitHub
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 2. Настраиваем SSH-ключ из наших зашифрованных секретов
+    - name: Set up SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        # Добавляем сервер Яндекса в известный список, чтобы SSH не задавал вопросов при подключении
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+    # 3. Устанавливаем Ansible на машину GitHub Actions
+    - name: Install Ansible
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ansible
+
+    # 4. Динамически генерируем inventory.ini, подставляя IP из секретов
+    - name: Create Ansible Inventory
+      run: |
+        echo "[webservers]" > ansible/inventory.ini
+        echo "web-node-1 ansible_host=${{ secrets.SSH_HOST }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_ed25519" >> ansible/inventory.ini
+
+    # 5. Запускаем наш готовый плейбук!
+    - name: Run Ansible Playbook
+      run: |
+        cd ansible
+        ansible-playbook -i inventory.ini playbook.yml
