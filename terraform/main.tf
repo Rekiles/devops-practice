@@ -30,7 +30,6 @@ terraform {
 
 # Подключаем провайдер Яндекса с авторизацией через JSON-файл
 provider "yandex" {
-  service_account_key_file = "key.json" # Путь к сохраненному файлу ключа
   cloud_id                 = "b1gcl65v9o8g9ikmsvmc" # Посмотри на главной странице консоли
   folder_id                = "b1gle25mltgv802km3fk" # Посмотри вверху экрана консоли
   zone                     = "ru-central1-a"
