@@ -30,7 +30,6 @@ terraform {
 
 # Подключаем провайдер Яндекса с авторизацией через JSON-файл
 provider "yandex" {
-  yc_tool_va_disabled
   service_account_key_file = "key.json" # Путь к сохраненному файлу ключа
   cloud_id                 = "b1gcl65v9o8g9ikmsvmc" # Посмотри на главной странице консоли
   folder_id                = "b1gle25mltgv802km3fk" # Посмотри вверху экрана консоли
@@ -68,17 +67,48 @@ resource "yandex_compute_instance" "vm" {
   }   
 
   network_interface {
-    subnet_id = yandex_vpc_subnet.subnet.id
-    nat       = true # Включаем публичный IP, чтобы подключаться из интернета
+    subnet_id          = yandex_vpc_subnet.subnet.id
+    nat                = true # Включаем публичный IP, чтобы подключаться из интернета
+    security_group_ids = [yandex_vpc_security_group.vm-sg.id] # <-- ДОБАВИЛИ СВЯЗЬ С ГРУППОЙ БЕЗОПАСНОСТИ
   }
 
   metadata = {
     # Добавляем твой публичный SSH-ключ для доступа к серверу
-    ssh-keys = "ubuntu:${file("C:/Users/bylli/.ssh/id_ed25519.pub")}"
+    ssh-keys = "ubuntu:${file("/mnt/c/Users/bylli/.ssh/id_ed25519.pub")}"
   }
 }
 
 # Выводим IP-адрес созданного сервера в терминал
 output "external_ip" {
   value = yandex_compute_instance.vm.network_interface.0.nat_ip_address
+}
+resource "yandex_vpc_security_group" "vm-sg" {
+  name        = "devops-server-sg"
+  description = "Правила фильтрации трафика для нашего веб-сервера"
+  network_id  = yandex_vpc_network.network.id
+
+  # Разрешаем входящий SSH (порт 22) для управления
+  ingress {
+    protocol       = "TCP"
+    description    = "Разрешить SSH"
+    v4_cidr_blocks = ["0.0.0.0/0"] # В идеале здесь пишется твой личный IP, но для гибкости оставим весь мир
+    port           = 22
+  }
+
+  # Разрешаем входящий HTTP (порт 80) для пользователей сайта
+  ingress {
+    protocol       = "TCP"
+    description    = "Разрешить веб-трафик HTTP"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    port           = 80
+  }
+
+  # Разрешаем ВСЕГДА весь исходящий трафик (чтобы сервер мог качать обновления и образы Docker)
+  egress {
+    protocol       = "ANY"
+    description    = "Разрешить весь исходящий трафик"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    from_port      = 0
+    to_port        = 65535
+  }
 }
