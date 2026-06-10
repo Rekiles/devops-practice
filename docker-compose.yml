@@ -15,8 +15,9 @@ services:
 
   web:
     build: ./app
-    ports:
-      - "80:5000"
+    # Порты наружу больше не выставляем! Трафик пойдет через Nginx.
+    expose:
+      - "5000"
     environment:
       DB_HOST: "db"
       DB_USER: ${POSTGRES_USER}
@@ -30,11 +31,20 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # --- НАШ НОВЫЙ РЕВЕРС-ПРОКСИ ---
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80" # Занимает единственный публичный порт
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+      - grafana
+
   # --- Сбор логов (Loki + Promtail) ---
   loki:
     image: grafana/loki:latest
-    ports:
-      - "127.0.0.1:3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
 
   promtail:
@@ -54,14 +64,14 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
-    ports:
-      - "127.0.0.1:9090:9090"
 
   grafana:
     image: grafana/grafana:latest
-    ports:
-      # Защита: порт 3000 доступен ТОЛЬКО локально на самом сервере Яндекса!
-      - "127.0.0.1:3000:3000"
+    # Порты убраны! Доступ только внутри сети Docker для Nginx
+    environment:
+      # Важно: объясняем Графане её новый URL-адрес
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:%(http_port)s/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
     depends_on:
       - prometheus
       - loki

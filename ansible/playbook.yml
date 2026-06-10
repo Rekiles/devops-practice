@@ -81,6 +81,7 @@
       loop:
         - prometheus.yml
         - promtail-config.yml
+        - nginx.conf
 
     # --- ЗАПУСК ИНФРАСТРУКТУРЫ ---
     - name: Запустить весь проект через Docker Compose (Идемпотентно)
