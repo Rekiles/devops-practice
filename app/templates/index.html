@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Сокращатель ссылок</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        input[type="url"] {
+            width: 70%;
+            padding: 10px;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3fe;
+            border-left: 6px #2196F3 solid;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>🚀 Сервис сокращения ссылок</h2>
+    <form method="POST">
+        <input type="url" name="url" placeholder="Вставьте длинную ссылку (например, https://google.com)" required>
+        <button type="submit">Сократить</button>
+    </form>
+
+    {% if short_url %}
+    <div class="result">
+        <strong>Готово! Ваша короткая ссылка:</strong><br>
+        <a href="{{ short_url }}" target="_blank">{{ short_url }}</a>
+    </div>
+    {% endif %}
+</body>
+
+</html>
