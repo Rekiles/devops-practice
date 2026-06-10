@@ -8,7 +8,6 @@ jobs:
   automation:
     runs-on: ubuntu-latest
 
-    # Переменные окружения для авторизации Terraform в Яндексе
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.YC_ACCESS_KEY }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.YC_SECRET_KEY }}
@@ -17,66 +16,57 @@ jobs:
       YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
 
     steps:
-    # 1. Скачиваем код репозитория
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # 1.5 Восстанавливаем key.json для Terraform из секретов GitHub
     - name: Create Yandex SA Key File
       run: |
         echo '${{ secrets.YC_SA_KEY }}' > terraform/key.json
 
-    # 2. Настраиваем утилиту Terraform на машине GitHub
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: "1.15.5"
 
-    # 3. Инициализируем Terraform в нужной папке
     - name: Terraform Init
-      run: terraform init
-      working-directory: ./terraform # <-- УКАЗЫВАЕМ ПУТЬ К ТВОЕЙ ПАПКЕ С TF ФАЙЛАМИ
+      run: |
+        terraform init \
+          -backend-config="access_key=${{ secrets.YC_ACCESS_KEY }}" \
+          -backend-config="secret_key=${{ secrets.YC_SECRET_KEY }}"
+      working-directory: ./terraform
 
-    # 4. Применяем изменения инфраструктуры
     - name: Terraform Apply
       run: terraform apply -auto-approve
-      working-directory: ./terraform # <-- И ЗДЕСЬ ТОЖЕ
+      working-directory: ./terraform
 
-    # 5. ВЫТАСКИВАЕМ IP АДРЕС СЕРВЕРА ИЗ TERRAFORM
     - name: Get Server IP
       id: get_ip
       run: |
         SERVER_IP=$(terraform output -raw external_ip)
         echo "server_ip=$SERVER_IP" >> $GITHUB_OUTPUT
-      working-directory: ./terraform # <-- И ЗДЕСЬ, чтобы он взял output из нужной папки
+      working-directory: ./terraform
 
-    # 6. Настраиваем SSH-ключ из наших зашифрованных секретов
     - name: Set up SSH Key
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
-        # Берем динамический IP из предыдущего шага, чтобы добавить его в known_hosts
         ssh-keyscan -H ${{ steps.get_ip.outputs.server_ip }} >> ~/.ssh/known_hosts
 
-    # 7. Устанавливаем Ansible на машину GitHub Actions
     - name: Install Ansible
       run: |
         sudo apt-get update
         sudo apt-get install -y ansible
 
-    # 8. Динамически генерируем inventory.ini, подставляя IP, полученный от Terraform
     - name: Create Ansible Inventory
       run: |
         echo "[webservers]" > ansible/inventory.ini
         echo "web-node-1 ansible_host=${{ steps.get_ip.outputs.server_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_ed25519" >> ansible/inventory.ini
 
-    # 9. Восстанавливаем файл .env из секретов GitHub
     - name: Create .env file
       run: |
         echo "${{ secrets.ENV_FILE }}" > .env
 
-    # 10. Запускаем наш готовый плейбук Ansible!
     - name: Run Ansible Playbook
       run: |
         cd ansible
