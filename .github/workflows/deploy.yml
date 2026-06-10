@@ -11,9 +11,6 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.YC_ACCESS_KEY }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.YC_SECRET_KEY }}
-      YC_TOKEN: ${{ secrets.YC_TOKEN }}
-      YC_CLOUD_ID: ${{ secrets.YC_CLOUD_ID }}
-      YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
 
     steps:
     - name: Checkout code
@@ -36,7 +33,10 @@ jobs:
       working-directory: ./terraform
 
     - name: Terraform Apply
-      run: terraform apply -auto-approve
+      run: |
+        terraform apply -auto-approve \
+          -var="cloud_id=${{ secrets.YC_CLOUD_ID }}" \
+          -var="folder_id=${{ secrets.YC_FOLDER_ID }}"
       working-directory: ./terraform
 
     - name: Get Server IP
