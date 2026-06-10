@@ -1,15 +1,56 @@
-# Игнорируем секретный ключ Яндекса
+# === Секреты и учётные данные ===
 terraform/key.json
-*.json
+**/*.key.json
+.env
+*.pem
+*.key
+id_ed25519
+id_ecdsa
+id_rsa
+terraform/terraform.tfvars
 
-# Игнорируем внутренние папки и стейты Terraform
+# === Terraform ===
 .terraform/
+terraform/.terraform/
 *.tfstate
 *.tfstate.*
+*.tfstate.backup
 .terraform.lock.hcl
+crash.log
+override.tf
 
-# Игнорируем кэш Python
+# === Ansible ===
+ansible/inventory.ini
+ansible/*.retry
+ansible/*.log
+
+# === Python ===
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
 
-.env
+# === Docker ===
+*.log
+docker-compose.override.yml
+app/__pycache__/
+
+# === OS и редакторы ===
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === Логи ===
+*.log

@@ -1,0 +1,4 @@
+access_key = "YOUR_ACCESS_KEY"
+secret_key = "YOUR_SECRET_KEY"
+cloud_id   = "YOUR_CLOUD_ID"
+folder_id  = "YOUR_FOLDER_ID"

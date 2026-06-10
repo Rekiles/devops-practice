@@ -13,8 +13,8 @@ terraform {
     region = "ru-central1"
     key    = "terraform.tfstate"
 
-    access_key = "YCAJEgidefWgA7XzD6RiADoQ0"
-    secret_key = "REMOVED_CLOUD_SECRET"
+    access_key = var.access_key
+    secret_key = var.secret_key
 
     # Полный набор заглушек для совместимости с Yandex Cloud
     skip_region_validation      = true
@@ -31,8 +31,8 @@ terraform {
 # Подключаем провайдер Яндекса с авторизацией через JSON-файл
 provider "yandex" {
   service_account_key_file = "key.json"
-  cloud_id                 = "b1gcl65v9o8g9ikmsvmc" # Посмотри на главной странице консоли
-  folder_id                = "b1gle25mltgv802km3fk" # Посмотри вверху экрана консоли
+  cloud_id  = var.cloud_id
+  folder_id = var.folder_id
   zone                     = "ru-central1-a"
 }
 data "yandex_compute_image" "ubuntu" {
