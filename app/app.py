@@ -24,24 +24,35 @@ def get_db_connection():
         host=DB_HOST, database=DB_NAME, user=DB_USER, password=DB_PASSWORD
     )
 
-# Автоматически создаем таблицу при запуске приложения, если её нет
+# Автоматически создаем таблицу при запуске приложения (с retry-механизмом)
 def init_db():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS urls (
-            id SERIAL PRIMARY KEY,
-            long_url TEXT NOT NULL,
-            short_code VARCHAR(10) NOT NULL UNIQUE,
-            clicks_count INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE INDEX IF NOT EXISTS idx_short_code ON urls(short_code);
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
-    logger.info("База данных проверена/инициализирована успешно.")
+    # Пробуем подключиться к базе несколько раз, давая ей время на раскачку
+    for attempt in range(5):
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS urls (
+                    id SERIAL PRIMARY KEY,
+                    long_url TEXT NOT NULL,
+                    short_code VARCHAR(10) NOT NULL UNIQUE,
+                    clicks_count INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE INDEX IF NOT EXISTS idx_short_code ON urls(short_code);
+            """)
+            conn.commit()
+            cur.close()
+            conn.close()
+            logger.info("База данных проверена/инициализирована успешно.")
+            return # Если всё прошло успешно, выходим из функции
+        except psycopg2.OperationalError as e:
+            logger.warning(f"База данных ещё не готова (попытка {attempt + 1}/5). Ожидание 2 секунды...")
+            time.sleep(2)
+    
+    # Если за 5 попыток база не ответила — тогда уже сигнализируем о критической ошибке
+    logger.critical("Не удалось подключиться к PostgreSQL после 5 попыток.")
+    raise Exception("Database connection failed")
 
 # Генерация случайного хвостика (например, aB3dE)
 def generate_short_code(length=6):
@@ -105,31 +116,3 @@ def redirect_to_url(short_code):
 if __name__ == "__main__":
     init_db()
     app.run(host="0.0.0.0", port=5000)
-def init_db():
-    # Пробуем подключиться к базе несколько раз, давая ей время на раскачку
-    for attempt in range(5):
-        try:
-            conn = get_db_connection()
-            cur = conn.cursor()
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS urls (
-                    id SERIAL PRIMARY KEY,
-                    long_url TEXT NOT NULL,
-                    short_code VARCHAR(10) NOT NULL UNIQUE,
-                    clicks_count INTEGER DEFAULT 0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );
-                CREATE INDEX IF NOT EXISTS idx_short_code ON urls(short_code);
-            """)
-            conn.commit()
-            cur.close()
-            conn.close()
-            logger.info("База данных проверена/инициализирована успешно.")
-            return # Если всё прошло успешно, выходим из функции
-        except psycopg2.OperationalError as e:
-            logger.warning(f"База данных ещё не готова (попытка {attempt + 1}/5). Ожидание 2 секунды...")
-            time.sleep(2)
-    
-    # Если за 5 попыток база не ответила — тогда уже сигнализируем о критической ошибке
-    logger.critical("Не удалось подключиться к PostgreSQL после 5 попыток.")
-    raise Exception("Database connection failed")

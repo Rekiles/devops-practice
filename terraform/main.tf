@@ -7,7 +7,7 @@ terraform {
 
   backend "s3" {
     endpoints = {
-      s3 = "https://storage.yandexcloud.net"
+      s3 = "https://yandexcloud.net"
     }
     bucket = "my-unique-tfstate-bucket"
     region = "ru-central1"
@@ -63,7 +63,7 @@ resource "yandex_compute_instance" "vm" {
   }
 
   metadata = {
-    ssh-keys = "ubuntu:${file("~/.ssh/id_ed25519.pub")}"
+    ssh-keys = "ubuntu:${var.ssh_public_key}"
   }
 }
 
