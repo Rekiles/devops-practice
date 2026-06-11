@@ -69,7 +69,7 @@
       loop:
         - { src: '../docker-compose.yml', dest: '/home/ubuntu/app/docker-compose.yml' }
         - { src: '../.env', dest: '/home/ubuntu/app/.env' }
-        - { src: '../app/', dest: '/home/ubuntu/app/app/' }
+        - { src: '../app/', dest: '/home/ubuntu/app/app' }
 
     - name: Копировать конфигурации мониторинга на сервер (как файлы!)
       ansible.builtin.copy:
