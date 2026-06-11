@@ -17,10 +17,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем исходный код приложения
 COPY . .
 
-# 3. Повышаем безопасность: переключаемся с root на встроенного пользователя python
-# Перед этим отдаем ему права на папку /app, чтобы он мог там работать
-RUN chown -R python:python /app
-USER python
+# Вручную создаем системную группу и пользователя 'appuser'
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Отдаем права новому пользователю на рабочую директорию
+RUN chown -R appuser:appuser /app
+
+# Переключаемся на безопасного пользователя
+USER appuser
 
 # Указываем порт и команду запуска
 EXPOSE 5000
