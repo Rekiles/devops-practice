@@ -41,6 +41,15 @@ resource "yandex_vpc_subnet" "subnet" {
   v4_cidr_blocks = ["10.5.0.0/24"]
 }
 
+# === СТАТИЧЕСКИЙ IP-АДРЕС (Теперь он стоит отдельно на верхнем уровне) ===
+resource "yandex_vpc_address" "addr" {
+  name = "static-ip-for-devops"
+  external_ipv4_address {
+    zone_id = "ru-central1-a"
+  }
+}
+
+# === ВИРТУАЛЬНАЯ МАШИНА ===
 resource "yandex_compute_instance" "vm" {
   name = "devops-server"
   
@@ -56,13 +65,6 @@ resource "yandex_compute_instance" "vm" {
     }
   }   
 
-  resource "yandex_vpc_address" "addr" {
-    name = "static-ip-for-devops"
-    external_ipv4_address {
-      zone_id = "ru-central1-a"
-    }
-  }
-
   network_interface {
     subnet_id          = yandex_vpc_subnet.subnet.id
     nat_ip_address     = yandex_vpc_address.addr.external_ipv4_address[0].address
@@ -74,10 +76,7 @@ resource "yandex_compute_instance" "vm" {
   }
 }
 
-output "external_ip" {
-  value = yandex_compute_instance.vm.network_interface.0.nat_ip_address
-}
-
+# === ГРУППА БЕЗОПАСНОСТИ ===
 resource "yandex_vpc_security_group" "vm-sg" {
   name        = "devops-server-sg"
   description = "Security group for web server"
@@ -104,4 +103,8 @@ resource "yandex_vpc_security_group" "vm-sg" {
     from_port      = 0
     to_port        = 65535
   }
+}
+
+output "external_ip" {
+  value = yandex_compute_instance.vm.network_interface.0.nat_ip_address
 }
