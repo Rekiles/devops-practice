@@ -76,32 +76,28 @@ resource "yandex_compute_instance" "vm" {
   }
 }
 
-# === ГРУППА БЕЗОПАСНОСТИ ===
 resource "yandex_vpc_security_group" "vm-sg" {
-  name        = "devops-server-sg"
-  description = "Security group for web server"
-  network_id  = yandex_vpc_network.network.id
+  name       = "vm-security-group"
+  network_id = yandex_vpc_network.your_network.id # подставь имя своей сети
 
+  # Разрешаем SSH для настройки
   ingress {
     protocol       = "TCP"
-    description    = "SSH"
-    v4_cidr_blocks = ["0.0.0.0/0"]
     port           = 22
+    v4_cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Разрешаем HTTP для работы приложения
   ingress {
     protocol       = "TCP"
-    description    = "HTTP"
-    v4_cidr_blocks = ["0.0.0.0/0"]
     port           = 80
+    v4_cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Разрешаем серверу выходить в интернет (скачивать Docker, обновления)
   egress {
     protocol       = "ANY"
-    description    = "Allow all outbound"
     v4_cidr_blocks = ["0.0.0.0/0"]
-    from_port      = 0
-    to_port        = 65535
   }
 }
 
