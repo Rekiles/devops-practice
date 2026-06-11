@@ -74,6 +74,9 @@ services:
     image: prom/prometheus:latest
     restart: always
     user: "root"
+    extra_hosts:
+      # <--- ДОБАВИТЬ ЭТИ ДВЕ СТРОКИ
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
