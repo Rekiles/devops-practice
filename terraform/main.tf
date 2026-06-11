@@ -33,15 +33,17 @@ data "yandex_compute_image" "ubuntu" {
   family = "ubuntu-2204-lts"
 }
 
+# 1. Создаем сеть
 resource "yandex_vpc_network" "network" {}
 
+# 2. Создаем подсеть в этой сети
 resource "yandex_vpc_subnet" "subnet" {
   zone           = "ru-central1-a"
   network_id     = yandex_vpc_network.network.id
   v4_cidr_blocks = ["10.5.0.0/24"]
 }
 
-# === СТАТИЧЕСКИЙ IP-АДРЕС (Теперь он стоит отдельно на верхнем уровне) ===
+# 3. Резервируем постоянный статический IP
 resource "yandex_vpc_address" "addr" {
   name = "static-ip-for-devops"
   external_ipv4_address {
@@ -49,7 +51,36 @@ resource "yandex_vpc_address" "addr" {
   }
 }
 
-# === ВИРТУАЛЬНАЯ МАШИНА ===
+# 4. Настраиваем файрвол (Группу безопасности)
+resource "yandex_vpc_security_group" "vm-sg" {
+  name        = "devops-server-sg"
+  description = "Security group for web server"
+  network_id  = yandex_vpc_network.network.id # ТУТ ИСПРАВЛЕНО НА ПРАВИЛЬНОЕ ИМЯ СЕТИ
+
+  ingress {
+    protocol       = "TCP"
+    description    = "SSH"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    port           = 22 # Открываем 22 порт, чтобы Ansible мог зайти
+  }
+
+  ingress {
+    protocol       = "TCP"
+    description    = "HTTP"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    port           = 80 # Открываем 80 порт для сайта и Графаны
+  }
+
+  egress {
+    protocol       = "ANY"
+    description    = "Allow all outbound"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    from_port      = 0
+    to_port        = 65535
+  }
+}
+
+# 5. Создаем виртуалку и связываем всё вместе
 resource "yandex_compute_instance" "vm" {
   name = "devops-server"
   
@@ -73,31 +104,6 @@ resource "yandex_compute_instance" "vm" {
 
   metadata = {
     ssh-keys = "ubuntu:${var.ssh_public_key}"
-  }
-}
-
-resource "yandex_vpc_security_group" "vm-sg" {
-  name       = "vm-security-group"
-  network_id = yandex_vpc_network.your_network.id # подставь имя своей сети
-
-  # Разрешаем SSH для настройки
-  ingress {
-    protocol       = "TCP"
-    port           = 22
-    v4_cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Разрешаем HTTP для работы приложения
-  ingress {
-    protocol       = "TCP"
-    port           = 80
-    v4_cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Разрешаем серверу выходить в интернет (скачивать Docker, обновления)
-  egress {
-    protocol       = "ANY"
-    v4_cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
