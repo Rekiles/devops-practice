@@ -51,11 +51,21 @@ jobs:
     - name: Set up SSH Key
       run: |
         mkdir -p ~/.ssh
+        
+        # Записываем ключ без лишних пробелов снаружи блока
         cat << 'EOF' > ~/.ssh/id_ed25519
         ${{ secrets.SSH_KEY }}
         EOF
+        
         chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan -H ${{ steps.get_ip.outputs.server_ip }} >> ~/.ssh/known_hosts
+        
+        # Даём виртуалке в Яндексе 15 секунд на запуск SSH-демона
+        echo "Waiting for remote server SSH to initialize..."
+        sleep 15
+        
+        # Запускаем keyscan. Если он споткнется, "|| true" не даст уронить пайплайн,
+        # а Ansible сам попробует подключиться при выполнении плейбука.
+        ssh-keyscan -H ${{ steps.get_ip.outputs.server_ip }} >> ~/.ssh/known_hosts || true
 
     - name: Install Ansible
       run: |
