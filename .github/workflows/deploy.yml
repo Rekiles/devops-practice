@@ -24,6 +24,7 @@ jobs:
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: "1.15.5"
+        terraform_wrapper: false # <--- ОТКЛЮЧАЕМ ОБЕРТКУ, чтобы вывод output был чистым текстом!
 
     - name: Terraform Init
       run: |
@@ -43,7 +44,7 @@ jobs:
     - name: Get Server IP
       id: get_ip
       run: |
-        SERVER_IP=$(terraform output -raw external_ip)
+        SERVER_IP=$(terraform output -raw external_ip | tr -d '\r\n[:space:]') # Дополнительно очищаем от скрытых символов переноса строки
         echo "server_ip=$SERVER_IP" >> $GITHUB_OUTPUT
       working-directory: ./terraform
 
