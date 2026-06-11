@@ -89,8 +89,12 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
+      # Важно: URL должен быть точно таким, какой вводится в браузере
       GF_SERVER_ROOT_URL: http://130.193.37.59/grafana/
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      # Отключаем встроенный редирект на HTTPS, если мы идем через HTTP-прокси Nginx
+      GF_SERVER_PROTOCOL: http
+      GF_SERVER_HTTP_PORT: 3000
     depends_on:
       - prometheus
       - loki
