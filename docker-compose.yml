@@ -86,7 +86,6 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
-      # ИСПРАВЛЕНО: синтаксис словаря без дефисов + корректный базовый URL для Nginx
       GF_SERVER_ROOT_URL: http://localhost/grafana/
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     depends_on:
