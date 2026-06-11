@@ -24,7 +24,7 @@ jobs:
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: "1.15.5"
-        terraform_wrapper: false # <--- ОТКЛЮЧАЕМ ОБЕРТКУ, чтобы вывод output был чистым текстом!
+        terraform_wrapper: false
 
     - name: Terraform Init
       run: |
@@ -36,7 +36,6 @@ jobs:
     - name: Terraform Apply
       run: |
         terraform apply -auto-approve \
-          -replace="yandex_compute_instance.vm" \
           -var="cloud_id=${{ secrets.YC_CLOUD_ID }}" \
           -var="folder_id=${{ secrets.YC_FOLDER_ID }}" \
           -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
@@ -45,7 +44,7 @@ jobs:
     - name: Get Server IP
       id: get_ip
       run: |
-        SERVER_IP=$(terraform output -raw external_ip | tr -d '\r\n[:space:]') # Дополнительно очищаем от скрытых символов переноса строки
+        SERVER_IP=$(terraform output -raw external_ip | tr -d '\r\n[:space:]')
         echo "server_ip=$SERVER_IP" >> $GITHUB_OUTPUT
       working-directory: ./terraform
 
@@ -53,19 +52,15 @@ jobs:
       run: |
         mkdir -p ~/.ssh
         
-        # Записываем ключ без лишних пробелов снаружи блока
         cat << 'EOF' > ~/.ssh/id_ed25519
         ${{ secrets.SSH_KEY }}
         EOF
         
         chmod 600 ~/.ssh/id_ed25519
         
-        # Даём виртуалке в Яндексе 40 секунд на запуск SSH-демона
-        echo "Waiting for remote server SSH to initialize..."
+        echo "Waiting 40 seconds for Yandex Cloud to apply NAT and boot SSH..."
         sleep 40
         
-        # Запускаем keyscan. Если он споткнется, "|| true" не даст уронить пайплайн,
-        # а Ansible сам попробует подключиться при выполнении плейбука.
         ssh-keyscan -H ${{ steps.get_ip.outputs.server_ip }} >> ~/.ssh/known_hosts || true
 
     - name: Install Ansible

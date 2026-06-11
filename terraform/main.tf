@@ -55,20 +55,20 @@ resource "yandex_vpc_address" "addr" {
 resource "yandex_vpc_security_group" "vm-sg" {
   name        = "devops-server-sg"
   description = "Security group for web server"
-  network_id  = yandex_vpc_network.network.id # ТУТ ИСПРАВЛЕНО НА ПРАВИЛЬНОЕ ИМЯ СЕТИ
+  network_id  = yandex_vpc_network.network.id
 
   ingress {
     protocol       = "TCP"
     description    = "SSH"
     v4_cidr_blocks = ["0.0.0.0/0"]
-    port           = 22 # Открываем 22 порт, чтобы Ansible мог зайти
+    port           = 22
   }
 
   ingress {
     protocol       = "TCP"
     description    = "HTTP"
     v4_cidr_blocks = ["0.0.0.0/0"]
-    port           = 80 # Открываем 80 порт для сайта и Графаны
+    port           = 80
   }
 
   egress {
@@ -98,6 +98,7 @@ resource "yandex_compute_instance" "vm" {
 
   network_interface {
     subnet_id          = yandex_vpc_subnet.subnet.id
+    nat                = true # <--- ВКЛЮЧАЕМ РУЧНИК ПУБЛИЧНОГО IP (Это исправит ошибку)
     nat_ip_address     = yandex_vpc_address.addr.external_ipv4_address[0].address
     security_group_ids = [yandex_vpc_security_group.vm-sg.id]
   }
