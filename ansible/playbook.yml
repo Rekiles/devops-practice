@@ -89,15 +89,3 @@
         project_src: /home/ubuntu/app
         state: present
         build: always
-
-    - name: Запустить Node Exporter для сбора системных метрик хоста
-      community.docker.docker_container:
-        name: node-exporter
-        image: prom/node-exporter:latest
-        restart_policy: unless-stopped
-        network_mode: host
-        pid_mode: host
-        volumes:
-          - /:/host:ro,rslave
-        command:
-          - '--path.rootfs=/host'
