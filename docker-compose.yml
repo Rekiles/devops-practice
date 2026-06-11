@@ -73,22 +73,22 @@ services:
   prometheus:
     image: prom/prometheus:latest
     restart: always
-    user: "root" # <--- ГАРАНТИЯ от ошибок записи в Volume (Permission Denied)
+    user: "root"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
-    # Переписали одной чистой строкой, чтобы Docker Compose не путался в синтаксисе массивов
     command: --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.external-url=/prometheus/ --web.route-prefix=/prometheus
 
   grafana:
     image: grafana/grafana:latest
     restart: always
-    user: "root" # <--- Предотвращает падение Grafana при инициализации бд в volume
+    user: "root"
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
-      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:%(http_port)s/grafana/
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      # ИСПРАВЛЕНО: синтаксис словаря без дефисов + корректный базовый URL для Nginx
+      GF_SERVER_ROOT_URL: http://localhost/grafana/
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     depends_on:
       - prometheus
       - loki
