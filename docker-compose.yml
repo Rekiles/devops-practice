@@ -1,6 +1,9 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:13-alpine
+    restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -20,6 +23,7 @@ services:
 
   web:
     build: ./app
+    restart: always
     expose:
       - "5000"
     environment:
@@ -38,22 +42,26 @@ services:
 
   nginx:
     image: nginx:alpine
+    restart: always
     ports:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - web
+      - prometheus
       - grafana
 
   loki:
     image: grafana/loki:latest
+    restart: always
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - loki_data:/loki
 
   promtail:
     image: grafana/promtail:latest
+    restart: always
     volumes:
       - ./promtail-config.yml:/etc/promtail/config.yml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
@@ -64,17 +72,18 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
+    restart: always
+    user: "root" # <--- ГАРАНТИЯ от ошибок записи в Volume (Permission Denied)
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.external-url=/prometheus/' # <--- ДОБАВИТЬ ЭТО
-      - '--web.route-prefix=/prometheus'
+    # Переписали одной чистой строкой, чтобы Docker Compose не путался в синтаксисе массивов
+    command: --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.external-url=/prometheus/ --web.route-prefix=/prometheus
 
   grafana:
     image: grafana/grafana:latest
+    restart: always
+    user: "root" # <--- Предотвращает падение Grafana при инициализации бд в volume
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
