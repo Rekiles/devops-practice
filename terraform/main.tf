@@ -56,9 +56,16 @@ resource "yandex_compute_instance" "vm" {
     }
   }   
 
+  resource "yandex_vpc_address" "addr" {
+  name = "static-ip-for-devops"
+  external_ipv4_address {
+    zone_id = "ru-central1-a" # Проверь, чтобы зона совпадала с твоей подсетью yandex_vpc_subnet.subnet
+  }
+ }
+
   network_interface {
     subnet_id          = yandex_vpc_subnet.subnet.id
-    nat                = true
+    nat_ip_address = yandex_vpc_address.addr.external_ipv4_address[0].address
     security_group_ids = [yandex_vpc_security_group.vm-sg.id]
   }
 
