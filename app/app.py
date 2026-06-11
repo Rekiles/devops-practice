@@ -6,8 +6,13 @@ import logging
 import psycopg2
 from psycopg2.extras import DictCursor
 from flask import Flask, render_template, request, redirect, abort
+from prometheus_flask_exporter import PrometheusMetrics # <--- ШАГ 1: Импортируем экспортер
 
 app = Flask(__name__)
+
+# ШАГ 2: Инициализируем метрики для Prometheus
+# Экспортер автоматически создаст эндпоинт /metrics и начнет сбор дефолтных метрик Flask
+metrics = PrometheusMetrics(app)
 
 # Настраиваем логи для Loki
 logging.basicConfig(level=logging.INFO)
