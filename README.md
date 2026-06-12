@@ -18,3 +18,6 @@
 
 ```bash
 docker run --rm -v $(pwd)/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus:latest promtool check config /etc/prometheus/prometheus.yml
+
+Скриншот Grafana
+ - ![Скриншот Grafana](Grafana_info.png)
