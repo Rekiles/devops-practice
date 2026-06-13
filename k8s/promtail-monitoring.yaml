@@ -74,10 +74,18 @@ spec:
       labels:
         name: promtail
     spec:
-      serviceAccountName: promtail-serviceaccount # ТЕПЕРЬ С ПРАВАМИ!
+      serviceAccountName: promtail-serviceaccount
+      # Добавляем права на уровне Пода
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
       containers:
         - name: promtail
           image: grafana/promtail:latest
+          # Добавляем привилегии на уровне Контейнера
+          securityContext:
+            privileged: true
+            readOnlyRootFilesystem: false
           args:
             - "-config.file=/etc/promtail/promtail.yaml"
           volumeMounts:
