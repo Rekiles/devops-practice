@@ -39,7 +39,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: reshort.duckdns.org # Указываем локальный домен для Графаны
+    - host: grafana.reshort.duckdns.org # Указываем локальный домен для Графаны
       http:
         paths:
           - path: /
