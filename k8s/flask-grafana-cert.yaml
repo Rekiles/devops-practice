@@ -4,11 +4,9 @@ metadata:
   name: flask-grafana-cert
   namespace: default
 spec:
-  # Имя секретного хранилища (должно строго совпадать с certificateRefs в gateway.yaml)
-  secretName: flask-grafana-tls-secret 
+  secretName: flask-grafana-tls-secret
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
     - "reshort.duckdns.org"
-    - "grafana.reshort.duckdns.org"

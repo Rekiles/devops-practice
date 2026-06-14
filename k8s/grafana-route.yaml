@@ -5,14 +5,14 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-    - name: main-gateway # Привязываемся к тем же общим воротам кластера
+    - name: main-gateway
   hostnames:
-    - "grafana.reshort.duckdns.org" # Кастомный поддомен для твоей панели мониторинга
+    - "reshort.duckdns.org"
   rules:
     - matches:
         - path:
             type: PathPrefix
-            value: /
+            value: /grafana # <--- ТЕПЕРЬ ТРАФИК ИДЕТ СЮДА
       backendRefs:
-        - name: grafana-service # Указываем на существующий сервис Графаны
-          port: 3000            # Порт, на котором работает Графана внутри сервиса
+        - name: grafana
+          port: 80

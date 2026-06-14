@@ -5,14 +5,14 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-    - name: main-gateway # Привязываемся к нашим общим воротам
+    - name: main-gateway
   hostnames:
     - "reshort.duckdns.org"
   rules:
     - matches:
         - path:
             type: PathPrefix
-            value: /
+            value: / # Traefik v3 автоматически отдаст приоритет более длинным путям вроде /.well-known/
       backendRefs:
-        - name: flask-service
+        - name: flask-app-service
           port: 5000
