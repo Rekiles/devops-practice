@@ -12,7 +12,7 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: / # Traefik v3 автоматически отдаст приоритет более длинным путям вроде /.well-known/
+            value: /
       backendRefs:
-        - name: flask-app-service
+        - name: flask-service # ИСПРАВЛЕНО: Было flask-app-service
           port: 5000

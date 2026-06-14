@@ -7,12 +7,12 @@ spec:
   parentRefs:
     - name: main-gateway
   hostnames:
-    - "reshort.duckdns.org"
+    - "grafana.reshort.duckdns.org" # Теперь красиво живет на своем поддомене
   rules:
     - matches:
         - path:
             type: PathPrefix
-            value: /grafana # <--- ТЕПЕРЬ ТРАФИК ИДЕТ СЮДА
+            value: /
       backendRefs:
-        - name: grafana
-          port: 80
+        - name: grafana-service # ИСПРАВЛЕНО: Имя сервиса из grafana-monitoring.yaml
+          port: 3000            # ИСПРАВЛЕНО: Порт Grafana вместо 80
