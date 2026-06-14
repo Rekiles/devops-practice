@@ -46,7 +46,7 @@ jobs:
           # Стягиваем изменения манифестов, если они были
           git pull origin main
           # Накатываем манифесты (на случай изменений в сервисах/деплоях)
-          kubectl apply -f k8s/
+          sudo kubectl apply -f k8s/
           # Принудительно заставляем Flask скачать новый образ и перезапустить поды
-          kubectl rollout restart deployment flask-deployment
+          sudo kubectl rollout restart deployment flask-deployment
         EOF
