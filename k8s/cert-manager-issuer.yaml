@@ -1,0 +1,18 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    # Официальный сервер Let's Encrypt для выдачи реальных SSL
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Впиши сюда свою реальную почту (туда придут уведомления, если сертификат будет просрочен)
+    email: byllit@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-prod-account-key
+    solvers:
+      - http01:
+          gatewayHTTPRoute:
+            parentRefs:
+              - name: main-gateway
+                namespace: default
