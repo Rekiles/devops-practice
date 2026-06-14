@@ -4,22 +4,26 @@ metadata:
   name: main-gateway
   namespace: default
 spec:
-  gatewayClassName: traefik # Используем встроенный в K3s Traefik
+  gatewayClassName: traefik
   listeners:
+    # 1. HTTP-слушатель (порт 80) — теперь он явно принимает любые хосты
     - name: web
       protocol: HTTP
       port: 80
+      hostname: "*" # <--- ДОБАВЛЕНО: Разрешает любые поддомены (включая cert-manager и grafana)
       allowedRoutes:
         namespaces:
           from: All
-# 2. ДОБАВЛЯЕМ HTTPS НА ПОРТУ 443
+
+    # 2. HTTPS-слушатель (порт 443)
     - name: websecure
       protocol: HTTPS
       port: 443
+      hostname: "*" # <--- ДОБАВЛЕНО для симметрии, чтобы HTTPS роуты тоже не блокировались
       allowedRoutes:
         namespaces:
           from: All
       tls:
-        mode: Terminate # Трафик шифруется до балансировщика, внутри кластера идет обычный HTTP
+        mode: Terminate
         certificateRefs:
-          - name: flask-grafana-tls-secret # Имя секретного хранилища для SSL-сертификата
+          - name: flask-grafana-tls-secret
