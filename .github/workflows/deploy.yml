@@ -1,83 +1,52 @@
-name: GitOps Complete Pipeline (Terraform + Ansible)
+name: Flask K8s CI/CD Pipeline
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  automation:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.YC_ACCESS_KEY }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.YC_SECRET_KEY }}
-
     steps:
+    # 1. Скачиваем свежий код из репозитория
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Create Yandex SA Key File
-      run: |
-        echo '${{ secrets.YC_SA_KEY }}' > terraform/key.json
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+    # 2. Логинимся в Docker Hub с помощью сохраненных секретов
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
       with:
-        terraform_version: "1.15.5"
-        terraform_wrapper: false
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Terraform Init
-      run: |
-        terraform init \
-          -backend-config="access_key=${{ secrets.YC_ACCESS_KEY }}" \
-          -backend-config="secret_key=${{ secrets.YC_SECRET_KEY }}"
-      working-directory: ./terraform
+    # 3. Собираем свежий Docker-образ и пушим его в Docker Hub
+    - name: Build and Push Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        # ЗАМЕНИ "твой_логин" на реальный логин Docker Hub ниже:
+        tags: Rekiles/flask-app:latest
 
-    - name: Terraform Apply
-      run: |
-        terraform apply -auto-approve \
-          -var="cloud_id=${{ secrets.YC_CLOUD_ID }}" \
-          -var="folder_id=${{ secrets.YC_FOLDER_ID }}" \
-          -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
-      working-directory: ./terraform
-
-    - name: Get Server IP
-      id: get_ip
-      run: |
-        SERVER_IP=$(terraform output -raw external_ip | tr -d '\r\n[:space:]')
-        echo "server_ip=$SERVER_IP" >> $GITHUB_OUTPUT
-      working-directory: ./terraform
-
+    # 4. Настраиваем SSH-ключ для подключения к нашей работающей Ubuntu
     - name: Set up SSH Key
       run: |
         mkdir -p ~/.ssh
-        
-        cat << 'EOF' > ~/.ssh/id_ed25519
-        ${{ secrets.SSH_KEY }}
-        EOF
-        
+        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
-        
-        echo "Waiting 40 seconds for Yandex Cloud to apply NAT and boot SSH..."
-        sleep 40
-        
-        ssh-keyscan -H ${{ steps.get_ip.outputs.server_ip }} >> ~/.ssh/known_hosts || true
+        ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-    - name: Install Ansible
+    # 5. Подключаемся к серверу и даем команду Кубернетесу обновить приложение
+    - name: Deploy to Kubernetes via SSH
       run: |
-        sudo apt-get update
-        sudo apt-get install -y ansible
-
-    - name: Create Ansible Inventory
-      run: |
-        echo "[webservers]" > ansible/inventory.ini
-        echo "web-node-1 ansible_host=${{ steps.get_ip.outputs.server_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_ed25519" >> ansible/inventory.ini
-
-    - name: Create .env file
-      run: |
-        echo "${{ secrets.ENV_FILE }}" > .env
-
-    - name: Run Ansible Playbook
-      run: |
-        cd ansible
-        ansible-playbook -i inventory.ini playbook.yml
+        ssh -i ~/.ssh/id_ed25519 ubuntu@${{ secrets.SERVER_IP }} << 'EOF'
+          cd ~/k8s-project
+          # Стягиваем изменения манифестов, если они были
+          git pull origin main
+          # Накатываем манифесты (на случай изменений в сервисах/деплоях)
+          kubectl apply -f k8s/
+          # Принудительно заставляем Flask скачать новый образ и перезапустить поды
+          kubectl rollout restart deployment flask-deployment
+        EOF
