@@ -16,4 +16,3 @@ spec:
                 kind: Gateway
                 name: main-gateway
                 namespace: default
-                listenerName: web # <--- ЯВНО УКАЗЫВАЕМ НАШ ЛИСТЕНЕР ИЗ gateway.yaml
