@@ -6,15 +6,16 @@ metadata:
 spec:
   gatewayClassName: traefik
   listeners:
-    # ОДИН слушатель для порта 80, который примет ВСЕ запросы cert-manager
+    # 1. HTTP-слушатель (порт 80) — теперь он явно ждет твою доменную зону
     - name: web
       protocol: HTTP
       port: 80
+      hostname: "*.duckdns.org" # <--- ДОБАВЛЕНО: Разрешает и reshort, и grafana, и роуты cert-manager
       allowedRoutes:
         namespaces:
           from: All
 
-    # Раздельные слушатели для HTTPS (порт 443)
+    # 2. HTTPS-слушатель для основного домена (порт 443)
     - name: websecure-main
       protocol: HTTPS
       port: 443
@@ -27,6 +28,7 @@ spec:
         certificateRefs:
           - name: flask-grafana-tls-secret
 
+    # 3. HTTPS-слушатель для Графаны (порт 443)
     - name: websecure-grafana
       protocol: HTTPS
       port: 443
