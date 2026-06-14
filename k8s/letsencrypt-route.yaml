@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: letsencrypt-fixed-svc
+  namespace: default
+spec:
+  ports:
+    - protocol: TCP
+      port: 8089
+      targetPort: 8089
+  selector:
+    # Этот лейбл cert-manager вешает на все свои поды-солверы
+    acme.cert-manager.io/http01-solver: "true" 
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -6,7 +20,7 @@ metadata:
 spec:
   parentRefs:
     - name: main-gateway
-      sectionName: web # Четко указываем на наш единственный HTTP слушатель
+      sectionName: web
   hostnames:
     - "reshort.duckdns.org"
     - "grafana.reshort.duckdns.org"
@@ -16,5 +30,5 @@ spec:
             type: PathPrefix
             value: /.well-known/acme-challenge/
       backendRefs:
-        - name: cert-manager-webhook # Стандартный сервис cert-manager для ответов
-          port: 8089 # Внутренний порт прохождения челленджа
+        - name: letsencrypt-fixed-svc
+          port: 8089
