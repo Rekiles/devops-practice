@@ -12,8 +12,7 @@ spec:
       - http01:
           gatewayHTTPRoute:
             parentRefs:
-              - group: gateway.networking.k8s.io
-                kind: Gateway
+              - kind: Gateway
                 name: main-gateway
                 namespace: default
-                sectionName: web
+                sectionName: web  # Привязываем к HTTP listener на порту 80

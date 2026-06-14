@@ -6,7 +6,7 @@ metadata:
 spec:
   parentRefs:
     - name: main-gateway
-      sectionName: web
+      sectionName: websecure  # Привязываем к HTTPS listener
   hostnames:
     - "grafana.reshort.duckdns.org"
   rules:
