@@ -16,4 +16,4 @@ spec:
                 kind: Gateway
                 name: main-gateway
                 namespace: default
-                # sectionName УДАЛЕН: Трафик сам разрулит маршрут по hostname
+                sectionName: web

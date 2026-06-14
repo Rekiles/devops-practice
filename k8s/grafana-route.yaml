@@ -6,14 +6,14 @@ metadata:
 spec:
   parentRefs:
     - name: main-gateway
-      sectionName: web-grafana # Ссылка на слушатель Графаны
+      sectionName: web
   hostnames:
-    - "grafana.reshort.duckdns.org" # ИСПРАВЛЕНО: Был основной домен
+    - "grafana.reshort.duckdns.org"
   rules:
     - matches:
         - path:
             type: PathPrefix
-            value: / # ИСПРАВЛЕНО: Графана по умолчанию ждет корень
+            value: /
       backendRefs:
-        - name: grafana-service # ИСПРАВЛЕНО: Было просто grafana
-          port: 3000 # ИСПРАВЛЕНО: Был порт 80
+        - name: grafana-service
+          port: 3000

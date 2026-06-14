@@ -6,24 +6,15 @@ metadata:
 spec:
   gatewayClassName: traefik
   listeners:
-    # === HTTP (Порт 80) — Валидация для Let's Encrypt и редиректов ===
-    - name: web-main
+    # --- HTTP (Порт 80) ---
+    - name: web
       protocol: HTTP
       port: 80
-      hostname: "reshort.duckdns.org"
       allowedRoutes:
         namespaces:
           from: All
 
-    - name: web-grafana
-      protocol: HTTP
-      port: 80
-      hostname: "grafana.reshort.duckdns.org"
-      allowedRoutes:
-        namespaces:
-          from: All
-
-    # === HTTPS (Порт 443) — Твой защищенный трафик ===
+    # --- HTTPS (Порт 443) ---
     - name: websecure-main
       protocol: HTTPS
       port: 443
