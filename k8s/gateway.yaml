@@ -12,3 +12,14 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+# 2. ДОБАВЛЯЕМ HTTPS НА ПОРТУ 443
+    - name: websecure
+      protocol: HTTPS
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate # Трафик шифруется до балансировщика, внутри кластера идет обычный HTTP
+        certificateRefs:
+          - name: flask-grafana-tls-secret # Имя секретного хранилища для SSL-сертификата
