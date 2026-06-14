@@ -24,8 +24,8 @@ jobs:
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v5
       with:
-        context: .
-        file: ./Dockerfile
+        context: ./app
+        file: ./app/Dockerfile
         push: true
         # ЗАМЕНИ "твой_логин" на реальный логин Docker Hub ниже:
         tags: Rekiles/flask-app:latest
