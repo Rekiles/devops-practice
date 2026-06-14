@@ -6,13 +6,14 @@ metadata:
 spec:
   parentRefs:
     - name: main-gateway
+      sectionName: web-grafana # Ссылка на слушатель Графаны
   hostnames:
-    - "grafana.reshort.duckdns.org" # Теперь красиво живет на своем поддомене
+    - "grafana.reshort.duckdns.org" # ИСПРАВЛЕНО: Был основной домен
   rules:
     - matches:
         - path:
             type: PathPrefix
-            value: /
+            value: / # ИСПРАВЛЕНО: Графана по умолчанию ждет корень
       backendRefs:
-        - name: grafana-service # ИСПРАВЛЕНО: Имя сервиса из grafana-monitoring.yaml
-          port: 3000            # ИСПРАВЛЕНО: Порт Grafana вместо 80
+        - name: grafana-service # ИСПРАВЛЕНО: Было просто grafana
+          port: 3000 # ИСПРАВЛЕНО: Был порт 80

@@ -6,7 +6,7 @@ metadata:
 spec:
   parentRefs:
     - name: main-gateway
-      sectionName: web # Указываем нашего HTTP-слушателя
+      sectionName: web-main # Привязываем строго к HTTP/HTTPS для основного домена
   hostnames:
     - "reshort.duckdns.org"
   rules:
@@ -15,5 +15,5 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: flask-service
+        - name: flask-service # ИСПРАВЛЕНО: Было flask-app-service
           port: 5000

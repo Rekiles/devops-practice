@@ -16,4 +16,4 @@ spec:
                 kind: Gateway
                 name: main-gateway
                 namespace: default
-                sectionName: web # Имя нашего HTTP-слушателя
+                # sectionName УДАЛЕН: Трафик сам разрулит маршрут по hostname
