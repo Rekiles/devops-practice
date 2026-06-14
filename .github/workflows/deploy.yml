@@ -28,7 +28,7 @@ jobs:
         file: ./app/Dockerfile
         push: true
         # ЗАМЕНИ "твой_логин" на реальный логин Docker Hub ниже:
-        tags: Rekiles/flask-app:latest
+        tags: docker.io/Rekiles/flask-app:latest
 
     # 4. Настраиваем SSH-ключ для подключения к нашей работающей Ubuntu
     - name: Set up SSH Key
