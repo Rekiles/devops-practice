@@ -11,5 +11,9 @@ spec:
     solvers:
       - http01:
           gatewayHTTPRoute:
-            labels:
-              use-existing-route: "true" # Говорим использовать то, что есть
+            parentRefs:
+              - group: gateway.networking.k8s.io
+                kind: Gateway
+                name: main-gateway
+                namespace: default
+                sectionName: web # Имя нашего HTTP-слушателя
