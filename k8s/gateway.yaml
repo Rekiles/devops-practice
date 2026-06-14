@@ -6,24 +6,15 @@ metadata:
 spec:
   gatewayClassName: traefik
   listeners:
-    # === HTTP (Порт 80) ===
-    - name: web-main
+    # ОДИН слушатель для порта 80, который примет ВСЕ запросы cert-manager
+    - name: web
       protocol: HTTP
       port: 80
-      hostname: "reshort.duckdns.org" # Явно привязываем основной домен
       allowedRoutes:
         namespaces:
           from: All
 
-    - name: web-grafana
-      protocol: HTTP
-      port: 80
-      hostname: "grafana.reshort.duckdns.org" # Явно привязываем домен Графаны
-      allowedRoutes:
-        namespaces:
-          from: All
-
-    # === HTTPS (Порт 443) ===
+    # Раздельные слушатели для HTTPS (порт 443)
     - name: websecure-main
       protocol: HTTPS
       port: 443

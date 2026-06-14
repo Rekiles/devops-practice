@@ -11,9 +11,5 @@ spec:
     solvers:
       - http01:
           gatewayHTTPRoute:
-            parentRefs:
-              - group: gateway.networking.k8s.io
-                kind: Gateway
-                name: main-gateway
-                namespace: default
-                # sectionName УБРАН, выбор идет по hostname автоматически
+            labels:
+              use-existing-route: "true" # Говорим использовать то, что есть

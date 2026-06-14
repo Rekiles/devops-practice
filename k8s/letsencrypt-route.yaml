@@ -1,0 +1,20 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: letsencrypt-global-route
+  namespace: default
+spec:
+  parentRefs:
+    - name: main-gateway
+      sectionName: web # Четко указываем на наш единственный HTTP слушатель
+  hostnames:
+    - "reshort.duckdns.org"
+    - "grafana.reshort.duckdns.org"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /.well-known/acme-challenge/
+      backendRefs:
+        - name: cert-manager-webhook # Стандартный сервис cert-manager для ответов
+          port: 8089 # Внутренний порт прохождения челленджа
