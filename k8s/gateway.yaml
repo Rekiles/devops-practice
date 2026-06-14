@@ -6,11 +6,11 @@ metadata:
 spec:
   gatewayClassName: traefik
   listeners:
-    # 1. HTTP-слушатель (порт 80) — теперь он явно принимает любые хосты
+    # 1. HTTP-слушатель (порт 80)
     - name: web
       protocol: HTTP
       port: 80
-      hostname: "*" # <--- ДОБАВЛЕНО: Разрешает любые поддомены (включая cert-manager и grafana)
+      # Поле hostname удалено, теперь этот порт открыт для любых доменов (Flask, Grafana, Cert-Manager)
       allowedRoutes:
         namespaces:
           from: All
@@ -19,7 +19,7 @@ spec:
     - name: websecure
       protocol: HTTPS
       port: 443
-      hostname: "*" # <--- ДОБАВЛЕНО для симметрии, чтобы HTTPS роуты тоже не блокировались
+      # Поле hostname удалено для сквозного прохода всех TLS-маршрутов
       allowedRoutes:
         namespaces:
           from: All
