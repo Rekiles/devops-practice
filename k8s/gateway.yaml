@@ -6,20 +6,40 @@ metadata:
 spec:
   gatewayClassName: traefik
   listeners:
-    # 1. HTTP-слушатель (порт 80)
-    - name: web
+    # === HTTP (Порт 80) ===
+    - name: web-main
       protocol: HTTP
       port: 80
-      # Поле hostname удалено, теперь этот порт открыт для любых доменов (Flask, Grafana, Cert-Manager)
+      hostname: "reshort.duckdns.org" # Явно привязываем основной домен
       allowedRoutes:
         namespaces:
           from: All
 
-    # 2. HTTPS-слушатель (порт 443)
-    - name: websecure
+    - name: web-grafana
+      protocol: HTTP
+      port: 80
+      hostname: "grafana.reshort.duckdns.org" # Явно привязываем домен Графаны
+      allowedRoutes:
+        namespaces:
+          from: All
+
+    # === HTTPS (Порт 443) ===
+    - name: websecure-main
       protocol: HTTPS
       port: 443
-      # Поле hostname удалено для сквозного прохода всех TLS-маршрутов
+      hostname: "reshort.duckdns.org"
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: flask-grafana-tls-secret
+
+    - name: websecure-grafana
+      protocol: HTTPS
+      port: 443
+      hostname: "grafana.reshort.duckdns.org"
       allowedRoutes:
         namespaces:
           from: All

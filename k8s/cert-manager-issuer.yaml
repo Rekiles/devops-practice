@@ -16,4 +16,4 @@ spec:
                 kind: Gateway
                 name: main-gateway
                 namespace: default
-                sectionName: web # Имя слушателя из gateway.yaml на 80 порту
+                # sectionName УБРАН, выбор идет по hostname автоматически
