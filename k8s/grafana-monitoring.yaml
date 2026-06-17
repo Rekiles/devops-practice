@@ -17,9 +17,11 @@ spec:
           image: grafana/grafana:latest
           ports:
             - containerPort: 3000
-          env: # ДОБАВЛЕНО для стабильности работы за реверс-прокси
+          env:
             - name: GF_SERVER_ROOT_URL
-              value: "https://grafana.reshort.duckdns.org"
+              value: "https://grafana.reshort.duckdns.org:8443" # ОБЯЗАТЕЛЬНО добавьте :8443
+            - name: GF_SERVER_SERVE_FROM_SUB_PATH
+              value: "true"
 ---
 apiVersion: v1
 kind: Service
