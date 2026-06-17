@@ -10,6 +10,13 @@ data:
       - job_name: 'flask-app-monitoring'
         static_configs:
           - targets: ['flask-service:5000']
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: node-exporter-prometheus-node-exporter    
 ---
 apiVersion: apps/v1
 kind: Deployment
