@@ -10,7 +10,6 @@ spec:
     - name: web
       protocol: HTTP
       port: 80
-      hostname: "*"  # Принимаем любые входящие хосты, маршруты разберутся сами
       allowedRoutes:
         namespaces:
           from: All
@@ -19,7 +18,6 @@ spec:
     - name: websecure
       protocol: HTTPS
       port: 443
-      hostname: "*"  # Корректно принимает и reshort.duckdns.org, и grafana.reshort.duckdns.org
       allowedRoutes:
         namespaces:
           from: All

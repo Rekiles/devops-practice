@@ -1,14 +1,21 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: flask-app-route
+  namespace: default
 spec:
   hostnames:
   - reshort.duckdns.org
   parentRefs:
-  - name: main-gateway
-    sectionName: web # Убедитесь, что это совпадает с вашим Gateway
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: main-gateway
+    sectionName: web
   rules:
   - matches:
     - path:
         type: PathPrefix
         value: /
     backendRefs:
-    - name: flask-service # Убедитесь, что имя сервиса верно
+    - name: flask-service
       port: 5000
