@@ -10,7 +10,7 @@ spec:
   - group: gateway.networking.k8s.io
     kind: Gateway
     name: main-gateway
-    sectionName: web
+    sectionName: websecure
   rules:
   - matches:
     - path:
