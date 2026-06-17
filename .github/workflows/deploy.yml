@@ -27,7 +27,7 @@ jobs:
         context: ./app
         file: ./app/Dockerfile
         push: true
-        # ЗАМЕНИ "твой_логин" на реальный логин Docker Hub ниже:
+        # Используем секрет или пишем напрямую, главное — точное совпадение с деплоем:
         tags: docker.io/rekiles/flask-app:latest
 
     # 4. Настраиваем SSH-ключ для подключения к нашей работающей Ubuntu
@@ -38,15 +38,21 @@ jobs:
         chmod 600 ~/.ssh/id_ed25519
         ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-    # 5. Подключаемся к серверу и даем команду Кубернетесу обновить приложение
+    # 5. Подключаемся к серверу и деплоим
     - name: Deploy to Kubernetes via SSH
       run: |
         ssh -i ~/.ssh/id_ed25519 ubuntu@${{ secrets.SERVER_IP }} << 'EOF'
           cd ~/k8s-project
-          # Стягиваем изменения манифестов, если они были
           git pull origin main
-          # Накатываем манифесты (на случай изменений в сервисах/деплоях)
+          
+          # Создаем файл .env из секрета GitHub на сервере
+          echo "${{ secrets.ENV_FILE }}" > .env
+          
+          # Генерируем или обновляем кубер-секрет из этого файла
+          sudo kubectl create secret generic app-secrets --from-env-file=.env --dry-run=client -o yaml | sudo kubectl apply -f -
+          rm .env # удаляем временный файл ради безопасности
+          
+          # Накатываем остальные манифесты
           sudo kubectl apply -f k8s/
-          # Принудительно заставляем Flask скачать новый образ и перезапустить поды
           sudo kubectl rollout restart deployment flask-deployment
         EOF

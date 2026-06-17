@@ -1,40 +1,4 @@
 apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: promtail-serviceaccount
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: promtail-clusterrole
-rules:
-  - apiGroups: [""]
-    resources:
-      - nodes
-      - nodes/proxy
-      - services
-      - pods
-      - namespaces
-    verbs:
-      - get
-      - list
-      - watch
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: promtail-clusterrolebinding
-subjects:
-  - kind: ServiceAccount
-    name: promtail-serviceaccount
-    namespace: default
-roleRef:
-  kind: ClusterRole
-  name: promtail-clusterrole
-  apiGroup: rbac.authorization.k8s.io
----
----
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: promtail-config
@@ -45,7 +9,7 @@ data:
       grpc_listen_port: 0
 
     positions:
-      filename: /tmp/positions.yaml
+      filename: /run/promtail/positions.yaml  # Перенесли в безопасное место внутри контейнера
 
     clients:
       - url: http://loki-service:3100/loki/api/v1/push
@@ -55,21 +19,17 @@ data:
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
-          # Маппим имя пода
           - source_labels: [__meta_kubernetes_pod_name]
             target_label: pod
-          # Маппим пространство имен
           - source_labels: [__meta_kubernetes_namespace]
             target_label: namespace
-          # Маппим имя контейнера
           - source_labels: [__meta_kubernetes_pod_container_name]
             target_label: container
-          # Достаем лейбл 'app' если он есть
           - source_labels: [__meta_kubernetes_pod_label_app]
             target_label: app
-          # Формируем путь к лог-файлам на хосте (Важно для K3s!)
-          - replacement: /var/log/pods/$1_$2_$3/*.log
-            source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
+          # Надежный способ нахождения логов в K3s/K8s:
+          - replacement: /var/log/pods/*$1/*.log
+            source_labels: [__meta_kubernetes_pod_uid]
             target_label: __path__
 ---
 apiVersion: apps/v1
@@ -86,17 +46,12 @@ spec:
         name: promtail
     spec:
       serviceAccountName: promtail-serviceaccount
-      # Добавляем права на уровне Пода
       securityContext:
         runAsUser: 0
         runAsGroup: 0
       containers:
         - name: promtail
           image: grafana/promtail:latest
-          # Добавляем привилегии на уровне Контейнера
-          securityContext:
-            privileged: true
-            readOnlyRootFilesystem: false
           args:
             - "-config.file=/etc/promtail/promtail.yaml"
           volumeMounts:
@@ -105,7 +60,7 @@ spec:
             - name: promtail-config
               mountPath: /etc/promtail
             - name: positions
-              mountPath: /tmp
+              mountPath: /run/promtail  # Безопасная папка для хранения состояния
       volumes:
         - name: logs
           hostPath:
@@ -114,5 +69,4 @@ spec:
           configMap:
             name: promtail-config
         - name: positions
-          hostPath:
-            path: /tmp
+          emptyDir: {}  # Позиции можно хранить в emptyDir, если нода не умирает часто, или привязать к /var/lib/promtail на хосте

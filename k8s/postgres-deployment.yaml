@@ -18,9 +18,19 @@ spec:
           env:
             - name: POSTGRES_USER
               value: "postgres"
-            - name: POSTGRES_PASSWORD
-              value: "securepassword"
             - name: POSTGRES_DB
               value: "links_db"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: DB_PASSWORD # Имя переменной внутри вашего ENV_FILE
           ports:
             - containerPort: 5432
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: pgdata
+          hostPath:
+            path: /var/data/postgres  # Данные сохранятся на жестком диске сервера/ноды

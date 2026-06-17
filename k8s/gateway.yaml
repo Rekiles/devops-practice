@@ -6,20 +6,20 @@ metadata:
 spec:
   gatewayClassName: traefik
   listeners:
-    # HTTP listener для cert-manager challenges
+    # HTTP listener для cert-manager challenges и редиректов
     - name: web
       protocol: HTTP
       port: 80
-      hostname: "*.duckdns.org"  # Принимаем все домены на 80 порту
+      hostname: "*"  # Принимаем любые входящие хосты, маршруты разберутся сами
       allowedRoutes:
         namespaces:
           from: All
     
-    # ЕДИНЫЙ HTTPS listener для всех доменов (нельзя создавать несколько на одном порту!)
+    # HTTPS listener для всех доменов
     - name: websecure
       protocol: HTTPS
       port: 443
-      hostname: "*.duckdns.org"  # Один listener на все поддомены
+      hostname: "*"  # Корректно принимает и reshort.duckdns.org, и grafana.reshort.duckdns.org
       allowedRoutes:
         namespaces:
           from: All

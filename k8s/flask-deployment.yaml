@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: flask
-          image: app-web:latest
-          imagePullPolicy: Never
+          image: docker.io/rekiles/flask-app:latest  # Четкое совпадение с пайплайном!
+          imagePullPolicy: Always                     # Обязательно скачиваем свежий образ с Docker Hub
           env:
             - name: DB_HOST
               value: "postgres-service"
@@ -23,9 +23,12 @@ spec:
               value: "links_db"
             - name: DB_USER
               value: "postgres"
-            - name: DB_PASSWORD
-              value: "securepassword"
             - name: FLASK_ENV
               value: "production"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: DB_PASSWORD
           ports:
             - containerPort: 5000
