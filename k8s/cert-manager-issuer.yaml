@@ -15,4 +15,4 @@ spec:
               - kind: Gateway
                 name: main-gateway
                 namespace: default
-                sectionName: web  # Привязываем к HTTP listener на порту 80
+                # sectionName: web  # Привязываем к HTTP listener на порту 80
