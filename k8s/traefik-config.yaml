@@ -7,3 +7,5 @@ spec:
   valuesContent: |-
     additionalArguments:
       - "--providers.kubernetesgateway"
+      - "--entryPoints.web.address=:8000"
+      - "--entryPoints.websecure.address=:8443"
